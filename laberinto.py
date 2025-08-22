@@ -40,48 +40,48 @@ LABERINTOS = {
 }
 
 # Posición de los quesos
-QUESOS = {7: [3,2], 9: [4,4], 12: [1,1]}
-MOVS = [(0,1),(0,-1),(1,0),(-1,0)]
+QUESOS = {7: [3,2], 9: [4,4], 12: [1,1]} #defino la posicion de tdos los quesos en cada tablero
+MOVS = [(0,1),(0,-1),(1,0),(-1,0)] #defino los movimientos que se pueden hacer (arriba, abajo, izquierda, derecha)
 
-def crear_tablero_fijo(n):
-    return copy.deepcopy(LABERINTOS[n])
+def crear_tablero_fijo(n): #hago una funcion que me cree un tablero fijo copiando a los tableros que ya estan creados
+    return copy.deepcopy(LABERINTOS[n]) #copia los tableros
 
-def mostrar(tablero, gato, raton, queso=None):
+def mostrar(tablero, gato, raton, queso=None): #hago una funcion que muestre en los tableros el gato, el raton, el queso, y si el gato atrapa al raton
     n = len(tablero)
     for i in range(n):
         fila = []
         for j in range(n):
-            if [i,j]==gato==raton:
-                fila.append("🪦 ")
-            elif [i,j]==gato:
-                fila.append("😺")
-            elif [i,j]==raton:
-                fila.append("🐭")
-            elif queso and [i,j]==queso:
-                fila.append("🧀")
+            if [i,j]==gato==raton: #si el gato atrapo al raton se pone la tumba
+                fila.append("🪦 ") #agrega la tumba
+            elif [i,j]==gato: #si el gato esta en el tablero muestra al gato
+                fila.append("😺") #agrega al gato
+            elif [i,j]==raton:#si el raton esta en el tablero agrega al raton
+                fila.append("🐭") #agrega al raton
+            elif queso and [i,j]==queso: #verifica si el queso exsiste y esta en la posicion correcta 
+                fila.append("🧀") #agrega el queso en la posicion
             else:
-                fila.append(tablero[i][j])
-        print(" ".join(fila))
+                fila.append(tablero[i][j]) #verifica si en el tablero no esta el gato raton y el queso
+        print(" ".join(fila)) #hace que el tablero se pueda ver sin corchetes ni comas
     print()
 
-def mover_jugador(pos, tecla, n, tablero):
-    movimientos = {"w":(-1,0),"s":(1,0),"a":(0,-1),"d":(0,1)}
-    if tecla in movimientos:
-        dx, dy = movimientos[tecla]
-        nx, ny = pos[0]+dx, pos[1]+dy
-        if 0<=nx<n and 0<=ny<n and tablero[nx][ny]!="🟥":
-            return [nx, ny]
-    return pos
+def mover_jugador(pos, tecla, n, tablero): #defino una funcion con parametros como la posicion, la tecla, el tamano del tablero y el tablero
+    movimientos = {"w":(-1,0),"s":(1,0),"a":(0,-1),"d":(0,1)} #son los movimientos que se puede hacer, izquierda, derecha, arriba, abajo
+    if tecla in movimientos: # si el jugador aprieta una tecla de movimiento, hace el movimiento correspondiente a la tecla
+        dx, dy = movimientos[tecla] #actualizan los movimientos que el jugador hace
+        nx, ny = pos[0]+dx, pos[1]+dy #calcula la nueva posicion del jugador
+        if 0<=nx<n and 0<=ny<n and tablero[nx][ny]!="🟥": #verifica si el movimiento es valido y verifica si esta bloquedo por un muro
+            return [nx, ny] #si el movimiento fue valido actualiza la posicion
+    return pos #si el movimiento no es valido devuelve la posicion del jugador sin cambiarla y evita que haga movimientos imposibles
 
-def evaluar_gato(gato, raton):
-    if gato==raton: return 999
-    return -(abs(gato[0]-raton[0]) + abs(gato[1]-raton[1]))
+def evaluar_gato(gato, raton): #defino una funcion que evalue al gato y al raton
+    if gato==raton: return 999 #si gato y el raton estan en la misma casilla devuelve el puntaje mas alto, osea el gato comio al raton
+    return -(abs(gato[0]-raton[0]) + abs(gato[1]-raton[1])) #calcula que tan buena es la posicion del gato respecto al raton
 
-def minimax_gato(gato, raton, depth, max_turno, n, tablero):
-    if depth==0 or gato==raton: return evaluar_gato(gato, raton), gato
-    if max_turno:
-        mejor_valor=-999
-        mejor_mov=gato
+def minimax_gato(gato, raton, depth, max_turno, n, tablero): #crea una funcion que agregue el algoritmo minimax al gato para que pueda hacer los mejores movimientos
+    if depth==0 or gato==raton: return evaluar_gato(gato, raton), gato #si la profundidad es 0 o el gato y el raton estan en la misma posicion, signifia que el gato gano
+    if max_turno: #si es el turno del jugador que quiere maximizar su puntaje
+        mejor_valor=-999 #el jugador inicia con un puntaje muy bajo para que cada siguiente movimiento sea mejor
+        mejor_mov=gato #inicializa la mejor posicion del gato
         for dx, dy in MOVS:
             nx, ny = gato[0]+dx, gato[1]+dy
             if 0<=nx<n and 0<=ny<n and tablero[nx][ny]!="🟥":

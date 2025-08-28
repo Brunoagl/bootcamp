@@ -1,3 +1,4 @@
+#creo las variables
 fila = 10
 columna = 10
 tablero = []
@@ -41,56 +42,88 @@ movimiento['d'] = (0, 1)    # derecha
 
 #funciones minimax para el raton
 
-MOVS = [(-1,0),(1,0),(0,-1),(0,1)] #arriba abajo izquierda y derecha
-PROFUNDIDAD = 3 #defino la profundidad
+movimientos = [(-1,0),(1,0),(0,-1),(0,1)] #arriba abajo izquierda y derecha
+profundidad = 3 #defino la profundidad
 
-def en_limites(p):
-    return 0 <= p[0] < fila and 0 <= p[1] < columna
+#esta funcion hace que no se pueda salir de los limites del tablero
+def en_limites(pos):
+    return 0 <= pos[0] < fila and 0 <= pos[1] < columna
 
-def es_transitable(p):
-    return tablero[p[0]][p[1]] != '0'
+#esta funcion verifica si no se puede pasar por ahi
+def es_transitable(pos):
+    return tablero[pos[0]][pos[1]] != '0'
 
+#esta funcion verifica si los movimientos son validos
 def movs_validos(pos):
-    res = []
-    for dx, dy in MOVS:
-        np = [pos[0] + dx, pos[1] + dy]
-        if en_limites(np) and es_transitable(np):
-            res.append(np)
-    return res
+    #creo una lista vacia para meter los movimientos validos q el jugador pueda hacer
+    resultado = []
+    #recorre los cambios en la fila y la columna de la lista de movimienros
+    for dx, dy in movimientos:
+        #la nueva posicion es igual a la posicion actual mas la nueva direccion
+        nueva_pos = [pos[0] + dx, pos[1] + dy]
+        # si la nueva posicion esta dentro de los limites y puede pasar por ahi permite el movimiento
+        if en_limites(nueva_pos) and es_transitable(nueva_pos):
+            #si el movimiento es valido se agrega a la lista vacia de resultado
+            resultado.append(nueva_pos)
+    #devuelve la lista con todas las posiciones posibles desde la nueva pos
+    return resultado
 
+#esta funcion evalua la posicion del gato y el raton
 def evaluar(pos_gato, pos_raton):
+    #si el gato y el raton estan en la misma casilla significa q el gato atrapo al raton
     if pos_gato == pos_raton:
+        #es el peor valor posible para el raton
         return -999
+    #calcula la diferencia de distancia entre el gato y el raton / abs: es el valor absoluto para evitar numeros negativos
     return abs(pos_gato[0] - pos_raton[0]) + abs(pos_gato[1] - pos_raton[1])
 
+#implemento el minimax
 def minimax(pos_gato, pos_raton, depth, turno_max):
     # turno_max = True -> mueve el ratón (MAX)
     # turno_max = False -> mueve el gato (MIN)
+    #si la profundidad es iguala 0 oel gato atrapo al raton
     if depth == 0 or pos_gato == pos_raton:
+        #vuelve a evaluar la posicion del gato y el raton
         return evaluar(pos_gato, pos_raton), pos_raton  # no importa mover ahora
 
+#si es el turno del raton
     if turno_max:
         # RATÓN (MAX)
+        #cualquier movimiento valido siempre sera mejor que el mejor valor indicado
         mejor_val = -999
+        #mejor_r es la mejor posicion del raton hasta ahora
         mejor_r = pos_raton
-        for nr in movs_validos(pos_raton):
-            val, _ = minimax(pos_gato, nr, depth - 1, False)
+        #recorre tdas las posicion posibles al q el raton pueda moverse
+        for nuevo_raton in movs_validos(pos_raton):
+            #por cada posicion posible se llama de nuevo al minimax
+            val, _ = minimax(pos_gato, nuevo_raton, depth - 1, False)
+            #si el valor actual es superior al mejor valor anteriormente definido
             if val > mejor_val:
+                #el mejor valor pasa a ser el valor actual
                 mejor_val = val
-                mejor_r = nr
+                #se actualiza con el puntaje y guarda la nueva posicion del raton
+                mejor_r = nuevo_raton
+        #vuelve a hacer lo mismo pero con las posiciones y puntajes actualizados
         return mejor_val, mejor_r
     else:
         # GATO (MIN)
+        #cualquier puntaje sera mejor al puntaje ya definido
         peor_val = 999
-        for ng in movs_validos(pos_gato):
-            val, _ = minimax(ng, pos_raton, depth - 1, True)
+        #recorre las posicuones posibles para el gato
+        for nuevo_gato in movs_validos(pos_gato):
+            #por cada posicion posible llama al minimax 
+            val, _ = minimax(nuevo_gato, pos_raton, depth - 1, True)
+            #si el valor nuevo es menor al valor ya definido
             if val < peor_val:
+                #el valor definido se actualiza y pasa a ser el nuevo valor
                 peor_val = val
-        # en turno del gato no movemos al ratón ahora
+        #vuelve a hacer lo mismo pero actualizando el puntaje y la posicion del raton
         return peor_val, pos_raton
-
+#esta funcion calcula el mejor movimiento del raton
 def mejor_movimiento_raton(pos_gato, pos_raton, depth):
+    #llama al minimax para calcular la mejor jugada para el raton
     _, mejor_r = minimax(pos_gato, pos_raton, depth, True)
+    #actualiza la mejor jugada del raton cada que la posicion del raton cambia
     return mejor_r
 
 #bucle
@@ -129,6 +162,7 @@ while continuar:
         # mostrar tablero actualizado
         for fila_temp in tablero:
             print(' '.join(fila_temp))
+        print()
 
  # ----- mueve el RATÓN (IA con Minimax) -----
     # (solo si el juego sigue)
@@ -136,8 +170,8 @@ while continuar:
         # quitar 'r' de su posición actual
         tablero[raton[0]][raton[1]] = '.'
 
-        # elegir mejor movimiento del ratón mirando PROFUNDIDAD turnos
-        nueva_r = mejor_movimiento_raton(gato, raton, PROFUNDIDAD)
+        # elegir mejor movimiento del ratón mirando profundidad turnos
+        nueva_r = mejor_movimiento_raton(gato, raton, profundidad)
 
         # mover ratón
         raton = nueva_r
@@ -153,3 +187,4 @@ while continuar:
     # mostrar tablero actualizado tras ambos movimientos
     for fila_temp in tablero:
         print(' '.join(fila_temp))
+    print()

@@ -41,7 +41,7 @@ void imprimir_laberinto(char **laberinto, int filas, int columnas, int pausa_ms,
 void generar_laberinto(char **laberinto, int fila, int columna, int filas, int columnas) {
     int direcciones[4] = {0,1,2,3}; // posibles direcciones
 
-    // Mezclar las direcciones aleatoriamente
+    // esta funcion lq hace es mezclar aletaroriamente las 4 direcciones
     for (int i = 0; i < 4; i++) {
         int j = rand() % 4;
         int tmp = direcciones[i];
@@ -50,23 +50,23 @@ void generar_laberinto(char **laberinto, int fila, int columna, int filas, int c
     }
 
     // Intentar moverse en cada dirección
-    for (int contador = 0; contador < 4; contador++) {
-        int dir = direcciones[contador];
-        int nueva_fila = fila + movimientos[dir][0] * 2;
-        int nueva_columna = columna + movimientos[dir][1] * 2;
+    for (int contador = 0; contador < 4; contador++) { // bucle que se repite 4 veces 
+        int dir = direcciones[contador]; // toma una direccion de la lista
+        int nueva_fila = fila + movimientos[dir][0] * 2; // calcula la nueva fila
+        int nueva_columna = columna + movimientos[dir][1] * 2; // calcula la nueva columna
 
         // Si está dentro del laberinto y es pared se abre camino
-        if (nueva_fila > 0 && nueva_fila < filas - 1 && nueva_columna > 0 && nueva_columna < columnas - 1) {
-            if (laberinto[nueva_fila][nueva_columna] == PARED) {
-                laberinto[fila + movimientos[dir][0]][columna + movimientos[dir][1]] = CAMINO; // abrir pared
-                laberinto[nueva_fila][nueva_columna] = CAMINO; // abrir celda destino
-                generar_laberinto(laberinto, nueva_fila, nueva_columna, filas, columnas); // recursión
+        if (nueva_fila > 0 && nueva_fila < filas - 1 && nueva_columna > 0 && nueva_columna < columnas - 1) { // comprueba si esta dentro del laberinto
+            if (laberinto[nueva_fila][nueva_columna] == PARED) { // verifica si la celda es una pared
+                laberinto[fila + movimientos[dir][0]][columna + movimientos[dir][1]] = CAMINO; // abre la pared intermedia entre la celda destino
+                laberinto[nueva_fila][nueva_columna] = CAMINO; // abrir celda destino luego
+                generar_laberinto(laberinto, nueva_fila, nueva_columna, filas, columnas); // repito lo mismo pero con la nueva posicion
             }
         }
     }
 }
 
-// BFS para encontrar la ruta más corta
+// uso busqueda por profundidad para encontrar la ruta más corta
 int bfs_find_path(char **laberinto, int filas, int columnas, int inicio_i, int inicio_j, int salida_i, int salida_j,
     int **out_path, int *out_len) {
     int total = filas * columnas; // total de celdas
@@ -76,33 +76,33 @@ int bfs_find_path(char **laberinto, int filas, int columnas, int inicio_i, int i
     for (int i = 0; i < total; i++) { padre_fila[i] = -1; padre_columna[i] = -1; }
 
     // Cola BFS
-    int *cola_fila = malloc(total * sizeof(int));
-    int *cola_columna = malloc(total * sizeof(int));
-    int frente = 0, fin = 0;
+    int *cola_fila = malloc(total * sizeof(int)); // guarda las posiciones de las filas visitadas
+    int *cola_columna = malloc(total * sizeof(int)); // guarda las posiciones de las columnas visitadas
+    int frente = 0, fin = 0; // indices vacios para manejar la cola
 
     // Encolar inicio
-    cola_fila[fin] = inicio_i; cola_columna[fin] = inicio_j; fin++;
-    visitado[inicio_i * columnas + inicio_j] = 1;
+    cola_fila[fin] = inicio_i; cola_columna[fin] = inicio_j; fin++; // agrego las posiciones iniciales a la cola 
+    visitado[inicio_i * columnas + inicio_j] = 1; // marca la celda inicial como visitada 
 
     int found = 0; // encontrado
-    while (frente < fin) {
-        int fila_actual = cola_fila[frente];
-        int columna_actual = cola_columna[frente];
-        frente++;
+    while (frente < fin) { // empiezo un bucle mientras la cola no este vacia
+        int fila_actual = cola_fila[frente]; // lee la fila del elemento q esta en el frente de la cola
+        int columna_actual = cola_columna[frente]; // lee la columna del elemnto q esta en el frente de la cola
+        frente++; // incrementa el frente en 1
 
         if (fila_actual == salida_i && columna_actual == salida_j) { found = 1; break; } // llegó a la salida
 
         // Revisar vecinos
-        for (int direcc = 0; direcc < 4; direcc++) {
-            int nuevafila = fila_actual + movimientos[direcc][0];
-            int nuevacolumna = columna_actual + movimientos[direcc][1];
-            if (nuevafila >= 0 && nuevacolumna < filas && nuevacolumna >= 0 && nuevacolumna < columnas) {
-                int idx = nuevafila * columnas + nuevacolumna;
-                if (!visitado[idx] && laberinto[nuevafila][nuevacolumna] != PARED) {
-                    visitado[idx] = 1;
-                    padre_fila[idx] = r; // guardar padre
-                    padre_columna[idx] = c;
-                    cola_fila[fin] = nuevafila; cola_columna[fin] = nuevacolumna; fin++; // encolar
+        for (int direcc = 0; direcc < 4; direcc++) { // recorre las 4 direcciones 
+            int nuevafila = fila_actual + movimientos[direcc][0]; // calcula la fila del vecino en esa dirreccion
+            int nuevacolumna = columna_actual + movimientos[direcc][1]; // hace lo mismo pero con la columna
+            if (nuevafila >= 0 && nuevafila < filas && nuevacolumna >= 0 && nuevacolumna < columnas) { // verifica que este dentro del tablero
+                int idx = nuevafila * columnas + nuevacolumna; // convierte las 2 coordenadas a 1
+                if (!visitado[idx] && laberinto[nuevafila][nuevacolumna] != PARED) { // comprueba si no fue visitado y si no es una pared
+                    visitado[idx] = 1; // marca el vecino como visitado para no marcarlo otra vez
+                    padre_fila[idx] = fila_actual; // guarda el padre fila
+                    padre_columna[idx] = columna_actual; // guarda el padre columna
+                    cola_fila[fin] = nuevafila; cola_columna[fin] = nuevacolumna; fin++; // guarda la fila y la columna en posición en fin y Luego aumenta fin
                 }
             }
         }
@@ -110,60 +110,60 @@ int bfs_find_path(char **laberinto, int filas, int columnas, int inicio_i, int i
 
     // Si no encontró ruta
     if (!found) {
-        free(visitado); free(padre_fila); free(padre_columna); free(cola_fila); free(cola_columna);
-        *out_path = NULL; *out_len = 0;
+        free(visitado); free(padre_fila); free(padre_columna); free(cola_fila); free(cola_columna); // se devuelve esa memoria al sistema y se evita una fuga de memoria
+        *out_path = NULL; *out_len = 0; // significa que no hay ruta y q no hay camino
         return 0;
     }
 
     // Reconstruir ruta en reversa
-    int *reversa = malloc(total * 2 * sizeof(int));
-    int cont = 0;
-    int camino_fila = salida_i, camino_columna = salida_j;
-    while (!(camino_fila == inicio_i && camino_columna == inicio_j)) {
-        reversa[cont*2] = camino_fila;
-        reversa[cont*2 + 1] = camino_columna;
-        cont++;
-        int idx = camino_fila * columnas + camino_columna;
-        camino_fila = padre_fila[idx]; camino_columna = padre_columna[idx];
+    int *reversa = malloc(total * 2 * sizeof(int)); // guardao el camino desde la salida hasta el inicio
+    int cont = 0; // indica cuántos pasos del camino hemos guardado
+    int camino_fila = salida_i, camino_columna = salida_j; // InicializO las variables de posición en la salida del laberinto
+    while (!(camino_fila == inicio_i && camino_columna == inicio_j)) { // creo un bucle que recorra el camino en reversa hasta lleagr al inicio
+        reversa[cont*2] = camino_fila; // guardo la posicion de fila actual
+        reversa[cont*2 + 1] = camino_columna; // lo mismo pero con columna
+        cont++; // incremento el contador
+        int idx = camino_fila * columnas + camino_columna; // Calcula el índice lineal de la celda en los arrays padre_fila y padre_columna
+        camino_fila = padre_fila[idx]; camino_columna = padre_columna[idx]; // Retrocedemos al padre de la celda actual
     }
-    reversa[cont*2] = inicio_i; reversa[cont*2 + 1] = inicio_j; cont++;
+    reversa[cont*2] = inicio_i; reversa[cont*2 + 1] = inicio_j; cont++; // guardo elcamino completo de salida a inicio en  reversa
 
     // Invertir ruta para que vaya de inicio a salida
-    int *path = malloc(cont * 2 * sizeof(int));
-    for (int i = 0; i < cont; i++) {
-        path[i*2]     = reversa[(cont-1-i)*2];
-        path[i*2 + 1] = reversa[(cont-1-i)*2 + 1];
+    int *camino = malloc(cont * 2 * sizeof(int)); // guardo la ruta desde inicio a salida
+    for (int i = 0; i < cont; i++) { // invierte el array reversa 
+        camino[i*2]     = reversa[(cont-1-i)*2]; // recorre reversa desde el final hasta el inicio.
+        camino[i*2 + 1] = reversa[(cont-1-i)*2 + 1]; // guarda la fila y la columna para cada paso
     }
 
-    // Liberar temporales
+    // Libero memoria de arrays temporales
     free(reversa);
     free(visitado); free(padre_fila); free(padre_columna); free(cola_fila); free(cola_columna);
 
-    *out_path = path; // devolver ruta
-    *out_len = cont;   // longitud
-    return 1;
+    *out_path = camino; // asigno la ruta final al puntero que recibirá el programa principal
+    *out_len = cont;   // guarda la cantidad de pasos de la ruta
+    return 1; // Devuelve 1 para indicar que sí se encontró un camino desde inicio hasta salida
 }
 
 // Anima al personaje moviéndose por la ruta
-void animar_personaje(char **laberinto, int filas, int columnas,int *path, int path_len, int pausa_ms,
+void animar_personaje(char **laberinto, int filas, int columnas,int *camino, int path_len, int pausa_ms,
     int inicio_i, int inicio_j, int salida_i, int salida_j) {
-    if (path_len <= 0) return;
+    if (path_len <= 0) return; // Si la ruta está vacía, no hace nada y sale de la función
 
     // Recorrido con puntos "."
-    for (int i = 0; i < path_len; i++) {
+    for (int i = 0; i < path_len; i++) { // Bucle que recorre cada paso del camino
         if (i > 0) {
-            int padre_fila = path[(i-1)*2], padre_columna = path[(i-1)*2 + 1];
-            if (!(padre_fila == inicio_i && padre_columna == inicio_j) && !(padre_fila == salida_i && padre_columna == salida_j)) {
-                laberinto[padre_fila][padre_columna] = VISITADO; // rastro
+            int padre_fila = camino[(i-1)*2], padre_columna = camino[(i-1)*2 + 1]; // Obtiene la celda anterior (padre_fila, padre_columna)
+            if (!(padre_fila == inicio_i && padre_columna == inicio_j) && !(padre_fila == salida_i && padre_columna == salida_j)) { 
+                laberinto[padre_fila][padre_columna] = VISITADO; // marca con . el recorrido
             }
         }
-        int camino_fila = path[i*2], camino_columna = path[i*2 + 1];
+        int camino_fila = camino[i*2], camino_columna = camino[i*2 + 1];
         imprimir_laberinto(laberinto, filas, columnas, pausa_ms, camino_fila, camino_columna);
     }
 
     // Marcar la mejor ruta con "*"
     for (int i = 0; i < path_len; i++) {
-        int fila_actual = path[i*2], columna_actual = path[i*2 + 1];
+        int fila_actual = camino[i*2], columna_actual = camino[i*2 + 1];
         if (!(fila_actual == inicio_i && columna_actual == inicio_j) && !(fila_actual == salida_i && columna_actual == salida_j)) {
             laberinto[fila_actual][columna_actual] = RUTA;
         }
@@ -228,16 +228,16 @@ int main() {
     imprimir_laberinto(laberinto, filas, columnas, 800, -1, -1);
 
     // Buscar camino con BFS
-    int *path = NULL; int path_len = 0;
+    int *camino = NULL; int path_len = 0;
     clock_t start_bfs = clock();
-    if (bfs_find_path(laberinto, filas, columnas, inicio_i, inicio_j, salida_i, salida_j, &path, &path_len)) {
+    if (bfs_find_path(laberinto, filas, columnas, inicio_i, inicio_j, salida_i, salida_j, &camino, &path_len)) {
         clock_t end_bfs = clock();
         printf("Ruta encontrada. Longitud: %d pasos\n", path_len);
         printf("Tiempo BFS: %.4f segundos\n",
                (double)(end_bfs - start_bfs) / CLOCKS_PER_SEC);
 
-        animar_personaje(laberinto, filas, columnas, path, path_len, 180, inicio_i, inicio_j, salida_i, salida_j);
-        free(path);
+        animar_personaje(laberinto, filas, columnas, camino, path_len, 180, inicio_i, inicio_j, salida_i, salida_j);
+        free(camino);
     } else {
         clock_t end_bfs = clock();
         printf("No se encontró ruta.\n");

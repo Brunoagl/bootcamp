@@ -10,11 +10,13 @@ ZONA_BLOQUEADA = 3
 
 # Funciones del mapa
 def crear_mapa_vacio(cantidad_filas, cantidad_columnas, valor_relleno=CAMINO_LIBRE):
-    """Crea y devuelve una matriz de tamaño filas x columnas con un valor inicial"""
+    "Crea y devuelve una matriz de tamaño filas x columnas con un valor inicial"
+
     return [[valor_relleno for _ in range(cantidad_columnas)] for _ in range(cantidad_filas)]
 
 def generar_obstaculos_aleatorios(mapa, probabilidad_edificio=0.15, probabilidad_agua=0.10, probabilidad_bloqueo=0.05):
-    """Llena el mapa con obstáculos aleatorios según las probabilidades dadas"""
+    "Llena el mapa con obstáculos aleatorios según las probabilidades dadas"
+
     total_filas = len(mapa)
     total_columnas = len(mapa[0])
 
@@ -31,32 +33,39 @@ def generar_obstaculos_aleatorios(mapa, probabilidad_edificio=0.15, probabilidad
                 mapa[indice_fila][indice_columna] = CAMINO_LIBRE
 
 def redimensionar_mapa(mapa, nuevas_filas, nuevas_columnas, valor_relleno=CAMINO_LIBRE):
-    """Devuelve un nuevo mapa con las dimensiones especificadas"""
+    "Devuelve un nuevo mapa con las dimensiones especificadas"
+
     filas_actuales = len(mapa)
     columnas_actuales = len(mapa[0])
     nuevo_mapa = crear_mapa_vacio(nuevas_filas, nuevas_columnas, valor_relleno)
 
     for indice_fila in range(min(filas_actuales, nuevas_filas)):
-        """copia el contenido del mapa viejo al nuevo sin pasarse de los límites"""
+        "copia el contenido del mapa viejo al nuevo sin pasarse de los límites"
+
         for indice_columna in range(min(columnas_actuales, nuevas_columnas)):
             nuevo_mapa[indice_fila][indice_columna] = mapa[indice_fila][indice_columna]
 
     return nuevo_mapa
 
 def cargar_mapa_desde_archivo(ruta_archivo):
-    """Carga un mapa desde un archivo de texto"""
+    "Carga un mapa desde un archivo de texto"
+
     mapa = []
     with open(ruta_archivo, 'r', encoding='utf-8') as archivo:
         for linea in archivo:
             linea = linea.strip()
             "Quita los espacios o saltos de línea al principio y al final de la línea"
+
             if not linea or linea.startswith('#'):
                 "Si la línea está vacía o empieza con “#” se salta"
+
                 continue
             linea = linea.replace(',', ' ')
             "reemplaza las , por espacios"
+
             fila = [int(valor) for valor in linea.split()]
             "Divide la línea en partes usando los espacios y convierte cada parte en número entero"
+
             mapa.append(fila)
             "Agrega esa fila a la lista principal del mapa"
 
@@ -73,17 +82,21 @@ def cargar_mapa_desde_archivo(ruta_archivo):
     return mapa
 
 def guardar_mapa_en_archivo(mapa, ruta_archivo):
-    """Guarda el mapa actual en un archivo"""
+    "Guarda el mapa actual en un archivo"
+
     with open(ruta_archivo, 'w', encoding='utf-8') as archivo:
         "Abre el archivo en modo escritura, si existe lo sobrescribe y si no, lo crea"
+
         for fila in mapa:
             "recorre fila por fila"
+
             archivo.write(' '.join(str(valor) for valor in fila) + '\n')
             "Escribe la fila en el archivo y salta de línea"
 
 # Visualisacion del mapa
 def imprimir_mapa(mapa, ruta_camino=None, posicion_inicio=None, posicion_destino=None, modo_detallado=False):
-    """Imprime el mapa con símbolos más legibles."""
+    "Imprime el mapa con símbolos más legibles."
+
     cantidad_filas = len(mapa)
     cantidad_columnas = len(mapa[0])
     conjunto_ruta = set(ruta_camino) if ruta_camino else set()
@@ -130,25 +143,32 @@ def es_celda_transitable(mapa, coordenada, permitir_agua=False):
 
 # Algoritmo de busqueda bfs
 def busqueda_por_anchura(mapa, coordenada_inicio, coordenada_destino, permitir_agua=False):
-    """Busca una ruta entre inicio y destino usando el algoritmo BFS (anchura)."""
+    "Busca una ruta entre inicio y destino usando el algoritmo BFS (anchura)."
+
     if not (esta_dentro_de_limites(mapa, coordenada_inicio) and esta_dentro_de_limites(mapa, coordenada_destino)):
         return None
-    "verifica que este dentro de las coordenadas"
+    "verifica que inicio y destino este dentro de los limites"
 
     valor_inicio = mapa[coordenada_inicio[0]][coordenada_inicio[1]]
     valor_destino = mapa[coordenada_destino[0]][coordenada_destino[1]]
+    "permite saber que hay dentro de las posiciones de esas coordenadas"
+
     if valor_inicio in (EDIFICIO, AGUA, ZONA_BLOQUEADA) or valor_destino in (EDIFICIO, AGUA, ZONA_BLOQUEADA):
         return None
     "verifica q el inicio y destino sean validos (si es 0 es camino libre y si es 1 es camino bloqueado)"
 
     total_filas, total_columnas = len(mapa), len(mapa[0])
     "guarda cuantas filas y columnas tiene el mapa"
+
     visitado = [[False] * total_columnas for _ in range(total_filas)]
     "guarda qué celdas ya fueron visitadas (evita repetir)"
+
     previo = [[None] * total_columnas for _ in range(total_filas)]
     "guarda de dónde venimos al llegar a una celda, para poder reconstruir el camino al final"
+
     cola = deque([coordenada_inicio])
     "crea una cola de dos extremos"
+
     visitado[coordenada_inicio[0]][coordenada_inicio[1]] = True
     "marca la celda inicial como visitada"
 
@@ -157,25 +177,32 @@ def busqueda_por_anchura(mapa, coordenada_inicio, coordenada_destino, permitir_a
 
     while cola:
         "mientras la cola este vacia continua explorando"
+
         fila_actual, columna_actual = cola.popleft()
         "saca el primer elemento de la cola"
+
         if (fila_actual, columna_actual) == coordenada_destino:
             break
         "verifica si llegamos al destino"
         for desplazamiento_fila, desplazamiento_columna in direcciones_movimiento:
             "recorre las cuatro direcciones"
+
             nueva_fila = fila_actual + desplazamiento_fila
             nueva_columna = columna_actual + desplazamiento_columna
             "suma el movimiento a las posiciones actuales para tener las nuevas posiciones"
+
             if 0 <= nueva_fila < total_filas and 0 <= nueva_columna < total_columnas and not visitado[nueva_fila][nueva_columna]:
                 "comprueba si la nueva posicion es valida"
+
                 valor = mapa[nueva_fila][nueva_columna]
                 if valor in (EDIFICIO, ZONA_BLOQUEADA):
                     continue
                 "si es edificio o zona bloqueada no pasa por ahi"
+
                 if valor == AGUA and not permitir_agua:
                     continue
                 "si es agua pero no esta permitido pasar por agua, no pasa por ahi"
+
                 visitado[nueva_fila][nueva_columna] = True
                 previo[nueva_fila][nueva_columna] = (fila_actual, columna_actual)
                 cola.append((nueva_fila, nueva_columna))
@@ -195,17 +222,22 @@ def busqueda_por_anchura(mapa, coordenada_inicio, coordenada_destino, permitir_a
     return ruta
 
 def encontrar_mejor_ruta(mapa, coordenada_inicio, coordenada_destino):
-    """Intenta encontrar una ruta primero por tierra, y si no puede, por agua."""
+    "Intenta encontrar una ruta primero por tierra, y si no puede, por agua."
+
     ruta_por_tierra = busqueda_por_anchura(mapa, coordenada_inicio, coordenada_destino, permitir_agua=False)
     "llama a la funcion bfs para buscar por tierra"
+
     if ruta_por_tierra:
         return ruta_por_tierra, 'tierra'
     "si encontro la ruta devuelve la posicion y la palabra tierra"
+
     ruta_por_agua = busqueda_por_anchura(mapa, coordenada_inicio, coordenada_destino, permitir_agua=True)
     "hace lo mismo pero ahora busca por el agua"
+
     if ruta_por_agua:
         return ruta_por_agua, 'agua'
     "si encontro ruta por agua devuele la posicikon y la palabra agua"
+
     return None, None 
 "si no hay camino posible"
 
@@ -217,6 +249,7 @@ def bucle_interactivo(mapa):
     ultima_ruta = None
 
     print("Calculadora de rutas. Escribe 'ayuda' para ver los comandos.")
+
     while True:
         try:
             entrada_usuario = input("> ").strip()
@@ -262,19 +295,24 @@ def bucle_interactivo(mapa):
         # Redimensionar mapa
         if comando == 'redimensionar' and len(partes_comando) >= 3:
             "revisa que el usuario haya puesto al menos 3 palabras"
+
             try:
                 nuevas_filas = int(partes_comando[1])
                 nuevas_columnas = int(partes_comando[2])
                 "Convierte las palabras escritas por el usuario a números enteros"
+
                 if nuevas_filas <= 0 or nuevas_columnas <= 0:
                     "Se asegura de que las dimensiones sean mayores que cero"
                     print("Tamaño inválido.")
                     continue
+
                 mapa[:] = redimensionar_mapa(mapa, nuevas_filas, nuevas_columnas)
                 "Crea un nuevo mapa con las medidas nuevas, copia las partes del mapa anterior y reemplaza el contenido de mapa con el nuevo"
+
                 generar_obstaculos_aleatorios(mapa)
                 "Después de crear el nuevo mapa, se llenan algunas celdas al azar con obstáculos"
                 print(f"Mapa redimensionado a {nuevas_filas}x{nuevas_columnas} con obstáculos aleatorios.")
+
             except ValueError:
                 "Si dentro del bloque try ocurre un error se atrapa el error con except y muestra un mensaje"
                 print("Uso: redimensionar filas columnas (por ejemplo: redimensionar 15 20)")
@@ -283,14 +321,18 @@ def bucle_interactivo(mapa):
         # Fijar inicio
         if comando == 'inicio' and len(partes_comando) >= 3:
             "Comprueba si el usuario escribió el comando y si se puso dos números"
+
             fila, columna = int(partes_comando[1]), int(partes_comando[2])
             "Convierte los valores de texto a números enteros"
+
             if not esta_dentro_de_limites(mapa, (fila, columna)):
                 print("Fuera del mapa.")
                 continue
+
             if mapa[fila][columna] in (EDIFICIO, AGUA, ZONA_BLOQUEADA):
                 print("No se puede colocar inicio sobre un obstáculo.")
                 continue
+
             posicion_inicio = (fila, columna)
             print("Inicio fijado en", posicion_inicio)
             continue
@@ -298,16 +340,26 @@ def bucle_interactivo(mapa):
         # Fijar destino
         if comando == 'destino' and len(partes_comando) >= 3:
             "Comprueba si el usuario escribió el comando y si se puso dos números"
+
             fila, columna = int(partes_comando[1]), int(partes_comando[2])
             "Convierte los valores de texto a números enteros"
+
             if not esta_dentro_de_limites(mapa, (fila, columna)):
                 print("Fuera del mapa.")
                 continue
+
             if mapa[fila][columna] in (EDIFICIO, AGUA, ZONA_BLOQUEADA):
                 print("No se puede colocar destino sobre un obstáculo.")
                 continue
+
             posicion_destino = (fila, columna)
             print("Destino fijado en", posicion_destino)
+            continue
+
+         # Alternar modo detallado
+        if comando == 'alternar' and len(partes_comando) >= 2 and partes_comando[1] == 'detallado':
+            modo_detallado = not modo_detallado
+            print("Modo detallado =", modo_detallado)
             continue
 
         # Buscar ruta
@@ -315,11 +367,14 @@ def bucle_interactivo(mapa):
             if posicion_inicio is None or posicion_destino is None:
                 print("Define primero inicio y destino.")
                 continue
+
             ruta, tipo = encontrar_mejor_ruta(mapa, posicion_inicio, posicion_destino)
             if ruta:
                 ultima_ruta = ruta
                 print(f"Ruta encontrada (modo: {tipo}). Pasos: {len(ruta) - 1}")
                 imprimir_mapa(mapa, ruta_camino=ruta, posicion_inicio=posicion_inicio, posicion_destino=posicion_destino, modo_detallado=modo_detallado)
+            
+
             else:
                 ultima_ruta = None
                 print("No hay ruta posible.")
